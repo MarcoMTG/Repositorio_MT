@@ -1,42 +1,33 @@
 import { MongoClient } from 'mongodb';
 
 export default async function handler(req, res) {
-    // Jalamos las llaves desde la "Caja Fuerte" de Vercel
-    const uri = process.env.MONGODB_URI;
-    const claveSecreta = process.env.CLAVE_MATRIZ; 
-
-    const cliente = new MongoClient(uri);
+    // Jalamos la clave desde la configuración OCULTA de Vercel
+    const clave = process.env.CLAVE_MATRIZ; 
+    const cliente = new MongoClient(process.env.MONGODB_URI);
 
     try {
         await cliente.connect();
-        const db = cliente.db("sample_mflix");
-        const coleccion = db.collection("movies");
+        const pelicula = await cliente.db("sample_mflix").collection("movies").findOne({});
+        
+        // Creamos la matriz A (2x2) usando los ASCII de la clave oculta
+        const A = [
+            [clave.charCodeAt(0), clave.charCodeAt(1)],
+            [clave.charCodeAt(2), clave.charCodeAt(3)]
+        ];
 
-        // Buscamos la primera película de la lista
-        const pelicula = await coleccion.findOne({});
+        let titulo = pelicula.title;
+        if (titulo.length % 2 !== 0) titulo += " "; // Padding
 
-        if (!pelicula) {
-            return res.status(404).json({ error: "Sin datos" });
+        let cifrado = [];
+        for (let i = 0; i < titulo.length; i += 2) {
+            const P = [titulo.charCodeAt(i), titulo.charCodeAt(i + 1)];
+            // C = A * P
+            cifrado.push(A[0][0] * P[0] + A[0][1] * P[1]);
+            cifrado.push(A[1][0] * P[0] + A[1][1] * P[1]);
         }
 
-        // --- ENCRIPTACIÓN POR MATRICES ---
-        const fA = claveSecreta.charCodeAt(0); 
-        const fB = claveSecreta.length;
-
-        const tituloCifrado = pelicula.title.split('').map(char => {
-            return (char.charCodeAt(0) * fA) + fB;
-        });
-
-        // Enviamos el nombre del usuario y los datos cifrados
-        res.status(200).json({
-            usuario: "Admin_MT", 
-            mensaje: "¡Conexión Exitosa al Cluster-MT!",
-            datosCifrados: tituloCifrado
-        });
-
+        res.status(200).json({ usuario: "Admin_MT", paquete: cifrado });
     } catch (e) {
-        res.status(500).json({ error: "Error: " + e.message });
-    } finally {
-        await cliente.close();
-    }
+        res.status(500).json({ error: "Error de servidor" });
+    } finally { await cliente.close(); }
 }
