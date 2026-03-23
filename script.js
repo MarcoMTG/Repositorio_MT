@@ -1,55 +1,33 @@
-const boton = document.getElementById('btnEjecutar');
-const caja = document.getElementById('resultado');
-
 boton.addEventListener('click', async () => {
     const pass = document.getElementById('claveUsuario').value;
-    
-    if (pass.length < 4) {
-        alert("La clave debe tener al menos 4 caracteres");
-        return;
-    }
+    if (pass.length < 4) return alert("Clave de 4+ caracteres");
 
-    caja.innerHTML = "📡 Conectando con MongoDB y aplicando Inversa...";
+    caja.innerHTML = "🔓 Desencriptando catálogo completo...";
 
     try {
         const respuesta = await fetch('/api/conectar');
         const data = await respuesta.json();
 
-        if (data.error) {
-            caja.innerHTML = "❌ Error: " + data.error;
-            return;
-        }
-
-        // 1. Matriz desde lo que TÚ escribiste
         const a = pass.charCodeAt(0), b = pass.charCodeAt(1);
         const c = pass.charCodeAt(2), d = pass.charCodeAt(3);
-
-        // 2. Determinante para la Inversa
         const det = (a * d) - (b * c);
-        if (det === 0) {
-            caja.innerHTML = "❌ Error: Clave no válida matemáticamente.";
-            return;
-        }
 
-        // 3. Desencriptar usando la Inversa (P = A^-1 * C)
-        let tituloReal = "";
-        for (let i = 0; i < data.paquete.length; i += 2) {
-            const c1 = data.paquete[i];
-            const c2 = data.paquete[i+1];
+        let htmlFinal = `<p style="color: #0070f3;">👤 Usuario: ${data.usuario}</p><hr>`;
+        
+        // Desencriptamos cada película del arreglo
+        data.catalogo.forEach((cifrado, index) => {
+            let tituloReal = "";
+            for (let i = 0; i < cifrado.length; i += 2) {
+                const p1 = (d * cifrado[i] - b * cifrado[i+1]) / det;
+                const p2 = (-c * cifrado[i] + a * cifrado[i+1]) / det;
+                tituloReal += String.fromCharCode(Math.round(p1)) + String.fromCharCode(Math.round(p2));
+            }
+            htmlFinal += `<p style="color: #00ff00;">🎬 ${index + 1}. ${tituloReal.trim()}</p>`;
+        });
 
-            const p1 = (d * c1 - b * c2) / det;
-            const p2 = (-c * c1 + a * c2) / det;
-
-            tituloReal += String.fromCharCode(Math.round(p1)) + String.fromCharCode(Math.round(p2));
-        }
-
-        caja.innerHTML = `
-            <p style="color: #0070f3;">👤 Usuario: ${data.usuario}</p>
-            <p style="color: #00ff00;">🎬 Película: <strong>${tituloReal.trim()}</strong></p>
-        `;
+        caja.innerHTML = htmlFinal;
 
     } catch (err) {
-        console.error(err);
-        caja.innerHTML = "❌ Error crítico: Revisa tu conexión a internet.";
+        caja.innerHTML = "❌ Error al cargar la tabla.";
     }
 });
