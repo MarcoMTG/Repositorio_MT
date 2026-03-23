@@ -1,30 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Proyecto ESCOM - Matrices</title>
-    <script src="https://unpkg.com/realm-web@1.5.1/dist/bundle.iife.js"></script>
+    <meta charset="UTF-8">
+    <title>Proyecto IA - MT</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #121212; color: white; }
+        button { padding: 15px; background: #0070f3; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #resultado { margin-top: 20px; color: #00ff00; }
+    </style>
 </head>
 <body>
-    <h1>Mis Películas de MongoDB Atlas</h1>
-    <div id="peliculas">Cargando datos...</div>
-
-    <script>
-        const app = new Realm.App({ id: "TU_APP_ID" }); // Esto lo configuraremos después
-
-        async function cargarDatos() {
-            const user = await app.logIn(Realm.Credentials.anonymous());
-            const mongodb = app.currentUser.mongoClient("mongodb-atlas");
-            const collection = mongodb.db("sample_mflix").collection("movies");
-            
-            const movies = await collection.find({}, { limit: 5 });
-            let html = "";
-            movies.forEach(m => {
-                html += `<p><strong>${m.title}</strong> - ${m.plot}</p>`;
-            });
-            document.getElementById("peliculas").innerHTML = html;
-        }
-
-        cargarDatos();
-    </script>
+    <h1>Conexión Segura a MongoDB</h1>
+    <button id="btnConectar">Ejecutar Consulta</button>
+    <div id="resultado">Esperando...</div>
+    <script src="script.js"></script>
 </body>
 </html>
+
