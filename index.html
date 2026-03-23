@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    
     <meta charset="UTF-8">
-    <title>Proyecto IA - MT</title>
+    <title>Sistema de IA - MT</title>
     <style>
-        
         body { font-family: sans-serif; text-align: center; padding: 50px; background: #121212; color: white; }
-        button { padding: 15px; background: #0070f3; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #resultado { margin-top: 20px; color: #00ff00; }
-        
+        input { padding: 10px; border-radius: 5px; border: none; margin-bottom: 10px; width: 250px; }
+        button { padding: 12px 20px; background: #0070f3; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #resultado { margin-top: 20px; color: #00ff00; font-family: monospace; }
     </style>
-    
 </head>
 <body>
-    
-    <h1>Conexión Segura a MongoDB</h1>
-    <button id="btnConectar">Ejecutar Consulta</button>
-    <div id="resultado">Esperando...</div>
+    <h1>Acceso Seguro a MongoDB</h1>
+    <p>Ingresa la clave de encriptación:</p>
+    <input type="password" id="claveUsuario" placeholder="Clave del Servidor">
+    <br>
+    <button id="btnEjecutar">Desencriptar y Consultar</button>
+    <div id="resultado">Esperando clave...</div>
+
     <script src="script.js"></script>
-    
 </body>
 </html>
-
