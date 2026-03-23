@@ -1,32 +1,55 @@
+const boton = document.getElementById('btnEjecutar');
+const caja = document.getElementById('resultado');
+
 boton.addEventListener('click', async () => {
-    // Leemos lo que TÚ escribas físicamente en la pantalla
     const pass = document.getElementById('claveUsuario').value;
-    if (pass.length < 4) return alert("Escribe la clave de 4+ caracteres");
+    
+    if (pass.length < 4) {
+        alert("La clave debe tener al menos 4 caracteres");
+        return;
+    }
+
+    caja.innerHTML = "📡 Conectando con MongoDB y aplicando Inversa...";
 
     try {
-        const res = await fetch('/api/conectar');
-        const data = await res.json();
+        const respuesta = await fetch('/api/conectar');
+        const data = await respuesta.json();
 
-        // 1. Generamos la matriz A con lo que escribiste
+        if (data.error) {
+            caja.innerHTML = "❌ Error: " + data.error;
+            return;
+        }
+
+        // 1. Matriz desde lo que TÚ escribiste
         const a = pass.charCodeAt(0), b = pass.charCodeAt(1);
         const c = pass.charCodeAt(2), d = pass.charCodeAt(3);
 
-        // 2. Calculamos el Determinante para la Inversa
+        // 2. Determinante para la Inversa
         const det = (a * d) - (b * c);
-        if (det === 0) return alert("Error matemático: Clave no válida");
-
-        // 3. Aplicamos la Matriz Inversa: P = A^-1 * C
-        let tituloReal = "";
-        for (let i = 0; i < data.paquete.length; i += 2) {
-            const C1 = data.paquete[i];
-            const C2 = data.paquete[i+1];
-
-            const P1 = (d * C1 - b * C2) / det;
-            const P2 = (-c * C1 + a * C2) / det;
-
-            tituloReal += String.fromCharCode(Math.round(P1)) + String.fromCharCode(Math.round(P2));
+        if (det === 0) {
+            caja.innerHTML = "❌ Error: Clave no válida matemáticamente.";
+            return;
         }
 
-        caja.innerHTML = `<strong>Usuario:</strong> ${data.usuario} <br> <strong>Película:</strong> ${tituloReal.trim()}`;
-    } catch (err) { caja.innerHTML = "Error de conexión"; }
+        // 3. Desencriptar usando la Inversa (P = A^-1 * C)
+        let tituloReal = "";
+        for (let i = 0; i < data.paquete.length; i += 2) {
+            const c1 = data.paquete[i];
+            const c2 = data.paquete[i+1];
+
+            const p1 = (d * c1 - b * c2) / det;
+            const p2 = (-c * c1 + a * c2) / det;
+
+            tituloReal += String.fromCharCode(Math.round(p1)) + String.fromCharCode(Math.round(p2));
+        }
+
+        caja.innerHTML = `
+            <p style="color: #0070f3;">👤 Usuario: ${data.usuario}</p>
+            <p style="color: #00ff00;">🎬 Película: <strong>${tituloReal.trim()}</strong></p>
+        `;
+
+    } catch (err) {
+        console.error(err);
+        caja.innerHTML = "❌ Error crítico: Revisa tu conexión a internet.";
+    }
 });
