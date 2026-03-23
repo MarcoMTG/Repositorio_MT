@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proyecto ESCOM - Matrices</title>
+    <script src="https://unpkg.com/realm-web@1.5.1/dist/bundle.iife.js"></script>
+</head>
+<body>
+    <h1>Mis Películas de MongoDB Atlas</h1>
+    <div id="peliculas">Cargando datos...</div>
+
+    <script>
+        const app = new Realm.App({ id: "TU_APP_ID" }); // Esto lo configuraremos después
+
+        async function cargarDatos() {
+            const user = await app.logIn(Realm.Credentials.anonymous());
+            const mongodb = app.currentUser.mongoClient("mongodb-atlas");
+            const collection = mongodb.db("sample_mflix").collection("movies");
+            
+            const movies = await collection.find({}, { limit: 5 });
+            let html = "";
+            movies.forEach(m => {
+                html += `<p><strong>${m.title}</strong> - ${m.plot}</p>`;
+            });
+            document.getElementById("peliculas").innerHTML = html;
+        }
+
+        cargarDatos();
+    </script>
+</body>
+</html>
