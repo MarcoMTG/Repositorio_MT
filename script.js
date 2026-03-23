@@ -1,38 +1,32 @@
-const boton = document.getElementById('btnEjecutar');
-const caja = document.getElementById('resultado');
-
 boton.addEventListener('click', async () => {
-    const passInput = document.getElementById('claveUsuario').value;
-    
-    if (!passInput) {
-        alert("¡Introduce la clave de la ESCOM!");
-        return;
-    }
-
-    caja.innerHTML = "Consultando base de datos...";
+    // Leemos lo que TÚ escribas físicamente en la pantalla
+    const pass = document.getElementById('claveUsuario').value;
+    if (pass.length < 4) return alert("Escribe la clave de 4+ caracteres");
 
     try {
         const res = await fetch('/api/conectar');
         const data = await res.json();
-        
-        // --- DESENCRIPTACIÓN POR MATRICES ---
-        const fA = passInput.charCodeAt(0);
-        const fB = passInput.length;
 
-        let tituloReal = data.datosCifrados.map(num => {
-            return String.fromCharCode((num - fB) / fA);
-        }).join('');
+        // 1. Generamos la matriz A con lo que escribiste
+        const a = pass.charCodeAt(0), b = pass.charCodeAt(1);
+        const c = pass.charCodeAt(2), d = pass.charCodeAt(3);
 
-        // Mostramos el Usuario y el Resultado
-        caja.innerHTML = `
-            <div style="border: 1px solid #444; padding: 15px; border-radius: 10px; background: #1e1e1e;">
-                <p style="color: #0070f3;">👤 Usuario: <strong>${data.usuario}</strong></p>
-                <p style="color: #00ff00;">✅ Estado: ${data.mensaje}</p>
-                <hr style="border: 0.5px solid #333;">
-                <p>🎬 Película: <span style="font-size: 1.2em; color: white;">${tituloReal}</span></p>
-            </div>
-        `;
-    } catch (err) {
-        caja.innerHTML = "<p style='color:red;'>Error de conexión. Revisa los Logs en Vercel.</p>";
-    }
+        // 2. Calculamos el Determinante para la Inversa
+        const det = (a * d) - (b * c);
+        if (det === 0) return alert("Error matemático: Clave no válida");
+
+        // 3. Aplicamos la Matriz Inversa: P = A^-1 * C
+        let tituloReal = "";
+        for (let i = 0; i < data.paquete.length; i += 2) {
+            const C1 = data.paquete[i];
+            const C2 = data.paquete[i+1];
+
+            const P1 = (d * C1 - b * C2) / det;
+            const P2 = (-c * C1 + a * C2) / det;
+
+            tituloReal += String.fromCharCode(Math.round(P1)) + String.fromCharCode(Math.round(P2));
+        }
+
+        caja.innerHTML = `<strong>Usuario:</strong> ${data.usuario} <br> <strong>Película:</strong> ${tituloReal.trim()}`;
+    } catch (err) { caja.innerHTML = "Error de conexión"; }
 });
