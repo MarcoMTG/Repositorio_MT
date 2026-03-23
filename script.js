@@ -5,29 +5,34 @@ boton.addEventListener('click', async () => {
     const passInput = document.getElementById('claveUsuario').value;
     
     if (!passInput) {
-        alert("¡Falta la clave de la ESCOM!");
+        alert("¡Introduce la clave de la ESCOM!");
         return;
     }
 
-    caja.innerHTML = "Llamando a la API...";
+    caja.innerHTML = "Consultando base de datos...";
 
     try {
         const res = await fetch('/api/conectar');
         const data = await res.json();
         
-        // --- Algoritmo de Matrices Inversas ---
-        // Usamos la clave que escribiste en el iPad para desencriptar
-        const fA = passInput.charCodeAt(0); // ASCII de la primera letra
-        const fB = passInput.length;       // Largo de la clave
+        // --- DESENCRIPTACIÓN POR MATRICES ---
+        const fA = passInput.charCodeAt(0);
+        const fB = passInput.length;
 
         let tituloReal = data.datosCifrados.map(num => {
-            // Operación inversa matemática
-            let codigoASCII = (num - fB) / fA;
-            return String.fromCharCode(codigoASCII);
+            return String.fromCharCode((num - fB) / fA);
         }).join('');
 
-        caja.innerHTML = `Mensaje: ${data.mensaje} <br> Título: <strong>${tituloReal}</strong>`;
+        // Mostramos el Usuario y el Resultado
+        caja.innerHTML = `
+            <div style="border: 1px solid #444; padding: 15px; border-radius: 10px; background: #1e1e1e;">
+                <p style="color: #0070f3;">👤 Usuario: <strong>${data.usuario}</strong></p>
+                <p style="color: #00ff00;">✅ Estado: ${data.mensaje}</p>
+                <hr style="border: 0.5px solid #333;">
+                <p>🎬 Película: <span style="font-size: 1.2em; color: white;">${tituloReal}</span></p>
+            </div>
+        `;
     } catch (err) {
-        caja.innerHTML = "Error: Revisa tu conexión o la IP en MongoDB.";
+        caja.innerHTML = "<p style='color:red;'>Error de conexión. Revisa los Logs en Vercel.</p>";
     }
 });
